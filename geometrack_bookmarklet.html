@@ -178,7 +178,7 @@ function copyScraper() {
 
 function buildCode(urlMap) {
   var mapJson = JSON.stringify(urlMap);
-  var FORM = 'https://jolly-meringue-4b4476.netlify.app/';
+  var FORM = 'https://sch88sch.github.io/fuji-scm-tools/supplier_grievance_feedback_v4.html';
   var p = [];
   p.push('(function(){');
   p.push('var M='+mapJson+';');
@@ -223,7 +223,7 @@ function buildCode(urlMap) {
   p.push('var ov=document.createElement("div");ov.style.cssText="position:fixed;bottom:20px;right:20px;z-index:2147483647;background:#1c2b22;border-radius:10px;padding:14px 18px;color:#fff;font-family:Arial,sans-serif;font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,0.45);min-width:260px;";');
   p.push('ov.innerHTML="<div style=\'font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;\'>&#127807; Fuji Oil Scraper</div><div style=\'font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:5px;\'>Case "+cn+" \u2014 "+key+"</div><div id=\'__fst__\' style=\'font-size:13px;color:#c97b2e;\'>\u23f3 Opening form...</div>";');
   p.push('document.body.appendChild(ov);');
-  p.push('var att=0;var t=setInterval(function(){att++;try{fw.postMessage(payload,"https://jolly-meringue-4b4476.netlify.app");clearInterval(t);var el=document.getElementById("__fst__");var c=mills.length?"#3d9b5f":"#c97b2e";var m=mills.length?("\u2713 "+mills.length+" mill(s) sent!"):"\\u26a0 0 mills \u2014 check Related Mill tab";if(el){el.textContent=m;el.style.color=c;}setTimeout(function(){ov.remove();},4000);}catch(e){if(att>40){clearInterval(t);}}},500);');
+  p.push('var att=0;var t=setInterval(function(){att++;try{fw.postMessage(payload,"https://sch88sch.github.io");clearInterval(t);var el=document.getElementById("__fst__");var c=mills.length?"#3d9b5f":"#c97b2e";var m=mills.length?("\u2713 "+mills.length+" mill(s) sent!"):"\\u26a0 0 mills \u2014 check Related Mill tab";if(el){el.textContent=m;el.style.color=c;}setTimeout(function(){ov.remove();},4000);}catch(e){if(att>40){clearInterval(t);}}},500);');
   p.push('}');
   p.push('})()');
   return p.join('');
