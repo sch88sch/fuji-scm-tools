@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geometrack → Grievance Form · Scraper</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--ink:#1c2b22;--ink-light:#6b8070;--green:#2d6a47;--green-pale:#eaf3ed;--green-border:#b8d9c5;--border:#cdd9d2;--surface:#f5f9f6;--white:#fff;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;}
+.header{background:var(--ink);padding:24px 32px;display:flex;align-items:center;gap:16px;}
+.header-icon{width:40px;height:40px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.header h1{font-family:'Fraunces',serif;font-size:18px;font-weight:400;color:#fff;}
+.header p{font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.main{max-width:680px;margin:0 auto;padding:36px 20px 60px;}
+.step{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:16px;}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:500;margin-right:10px;flex-shrink:0;}
+.step-title{font-size:15px;font-weight:500;color:var(--ink);display:flex;align-items:center;margin-bottom:12px;}
+.step-body{font-size:13.5px;color:var(--ink-light);line-height:1.7;}
+.step-body strong{color:var(--ink);font-weight:500;}
+.config-box{background:var(--green-pale);border:1px solid var(--green-border);border-radius:8px;padding:16px 18px;margin:14px 0;}
+.config-box label{font-size:12px;font-weight:500;color:var(--green);display:block;margin-bottom:8px;}
+.mapping-row{display:grid;grid-template-columns:1fr auto 70px;gap:8px;align-items:center;margin-bottom:8px;}
+.mapping-row input{border:1px solid var(--green-border);border-radius:6px;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink);background:var(--white);outline:none;width:100%;}
+.mapping-row input:focus{border-color:var(--green);}
+.mapping-row span{font-size:12px;color:var(--ink-light);white-space:nowrap;}
+.btn-add{background:none;border:1px dashed var(--green-border);color:var(--green);padding:5px 12px;border-radius:5px;font-size:12px;cursor:pointer;margin-top:4px;font-family:'IBM Plex Sans',sans-serif;}
+.btn-green{background:var(--green);color:#fff;border:none;border-radius:7px;padding:11px 22px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background 0.15s;}
+.btn-green:hover{background:var(--ink);}
+.how-it-works{background:var(--green-pale);border:1px solid var(--green-border);border-radius:8px;padding:16px 18px;margin-top:16px;}
+.how-it-works h4{font-size:12px;font-weight:500;color:var(--green);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}
+.how-it-works ol{padding-left:18px;font-size:13px;color:var(--ink);line-height:1.9;}
+.footer{text-align:center;padding:20px;font-size:11.5px;color:var(--ink-light);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+  </div>
+  <div>
+    <h1>Geometrack → Grievance Form · Scraper</h1>
+    <p>Fuji Oil Group · SCM Sustainability</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="step">
+    <div class="step-title"><span class="step-num">1</span> Configure company mappings</div>
+    <div class="step-body">Map each company group name (as shown in Geometrack) to its case number in your grievance form.</div>
+    <div class="config-box">
+      <label>Company name (partial match) → Grievance form case number</label>
+      <div id="mappings">
+        <div class="mapping-row"><input type="text" class="map-url" value="Panca Eka"/><span>→ Case</span><input type="number" class="map-case" value="1" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Uniseraya"/><span>→ Case</span><input type="number" class="map-case" value="1" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Pasifik Agro Sentosa"/><span>→ Case</span><input type="number" class="map-case" value="2" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Cipta Usaha Sejati"/><span>→ Case</span><input type="number" class="map-case" value="2" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Parna Raya"/><span>→ Case</span><input type="number" class="map-case" value="3" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Temila Agro"/><span>→ Case</span><input type="number" class="map-case" value="3" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Lyman Agro"/><span>→ Case</span><input type="number" class="map-case" value="4" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Bumi Agro Makmur"/><span>→ Case</span><input type="number" class="map-case" value="4" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Trieka Agro"/><span>→ Case</span><input type="number" class="map-case" value="5" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="First Lamandau Timber"/><span>→ Case</span><input type="number" class="map-case" value="6" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Kho Karsono"/><span>→ Case</span><input type="number" class="map-case" value="7" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Sentosa Kalimantan"/><span>→ Case</span><input type="number" class="map-case" value="7" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="General Aura Semari"/><span>→ Case</span><input type="number" class="map-case" value="8" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="First Resources"/><span>→ Case</span><input type="number" class="map-case" value="9" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Borneo Damai Lestari"/><span>→ Case</span><input type="number" class="map-case" value="9" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Julong"/><span>→ Case</span><input type="number" class="map-case" value="10" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Mulia Agro Utama"/><span>→ Case</span><input type="number" class="map-case" value="10" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="PTPN"/><span>→ Case</span><input type="number" class="map-case" value="11" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Zarvex"/><span>→ Case</span><input type="number" class="map-case" value="12" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Putera Manunggal"/><span>→ Case</span><input type="number" class="map-case" value="12" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Karunia Prima"/><span>→ Case</span><input type="number" class="map-case" value="13" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="KPN"/><span>→ Case</span><input type="number" class="map-case" value="13" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Agriprima"/><span>→ Case</span><input type="number" class="map-case" value="13" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Pusaka Agro Makmur"/><span>→ Case</span><input type="number" class="map-case" value="14" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Rimbunan Hijau"/><span>→ Case</span><input type="number" class="map-case" value="15" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Woodijaya"/><span>→ Case</span><input type="number" class="map-case" value="15" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Ta Ann"/><span>→ Case</span><input type="number" class="map-case" value="16" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Tradewinds"/><span>→ Case</span><input type="number" class="map-case" value="17" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Arah Bersama"/><span>→ Case</span><input type="number" class="map-case" value="17" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Usaha Wawasan"/><span>→ Case</span><input type="number" class="map-case" value="17" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Prima Antar Surya"/><span>→ Case</span><input type="number" class="map-case" value="18" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Citra Sugi Aditya"/><span>→ Case</span><input type="number" class="map-case" value="18" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Sinar Alam Corporation"/><span>→ Case</span><input type="number" class="map-case" value="19" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Kalimantan Barito Persada"/><span>→ Case</span><input type="number" class="map-case" value="19" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Etam Bersama Lestari"/><span>→ Case</span><input type="number" class="map-case" value="20" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="FAP Agri"/><span>→ Case</span><input type="number" class="map-case" value="21" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Fangiono"/><span>→ Case</span><input type="number" class="map-case" value="21" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Marsam Citra"/><span>→ Case</span><input type="number" class="map-case" value="21" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Pancadaya Perkasa"/><span>→ Case</span><input type="number" class="map-case" value="22" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Bumi Mulia Makmur"/><span>→ Case</span><input type="number" class="map-case" value="22" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Dupont"/><span>→ Case</span><input type="number" class="map-case" value="23" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Leosk"/><span>→ Case</span><input type="number" class="map-case" value="23" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Nunukan Sawit"/><span>→ Case</span><input type="number" class="map-case" value="23" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Borneopersada Prima Jaya"/><span>→ Case</span><input type="number" class="map-case" value="24" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Yayasan Sabah"/><span>→ Case</span><input type="number" class="map-case" value="25" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Serijaya Industri"/><span>→ Case</span><input type="number" class="map-case" value="25" min="1"/></div>
+        <div class="mapping-row"><input type="text" class="map-url" value="Luasong"/><span>→ Case</span><input type="number" class="map-case" value="25" min="1"/></div>
+      </div>
+      <button class="btn-add" onclick="addRow()">+ Add another company</button>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-num">2</span> Generate &amp; copy scraper</div>
+    <div class="step-body">Click Generate, then copy and paste the scraper into the Geometrack console on any case detail page. It will automatically open and fill the grievance form.</div>
+
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn-green" onclick="generate()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Generate Scraper
+      </button>
+      <button class="btn-green" id="btn-copy" onclick="copyScraper()" style="display:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Scraper Code
+      </button>
+    </div>
+
+    <div class="how-it-works" style="margin-top:16px;">
+      <h4>How to use — once per case page</h4>
+      <ol>
+        <li>Open a Geometrack case detail page (e.g. MR2600288)</li>
+        <li>Click the <strong>Related Mill Group</strong> tab to load mill data</li>
+        <li>Press <strong>F12</strong> → click the <strong>Console</strong> tab</li>
+        <li>Type <strong>allow pasting</strong> and press Enter <em>(first time only per browser session)</em></li>
+        <li>Click <strong>Copy Scraper Code</strong> above → switch to Geometrack → press <strong>Ctrl+V → Enter</strong></li>
+        <li>The grievance form opens automatically with mills pre-filled ✓</li>
+      </ol>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">Fuji Oil Group · SCM Sustainability Tool · Runs entirely in your browser</div>
+
+<script>
+var _code = '';
+
+function addRow() {
+  var c = document.getElementById('mappings');
+  var d = document.createElement('div');
+  d.className = 'mapping-row';
+  d.innerHTML = '<input type="text" class="map-url" placeholder="Company name"/><span>&#8594; Case</span><input type="number" class="map-case" value="1" min="1"/>';
+  c.appendChild(d);
+}
+
+function generate() {
+  var urlMap = {};
+  document.querySelectorAll('.mapping-row').forEach(function(row) {
+    var u = row.querySelector('.map-url').value.trim();
+    var n = parseInt(row.querySelector('.map-case').value.trim(), 10);
+    if (u && n) urlMap[u] = n;
+  });
+  if (!Object.keys(urlMap).length) { alert('Please enter at least one company mapping.'); return; }
+  _code = buildCode(urlMap);
+  var btn = document.getElementById('btn-copy');
+  btn.style.display = 'inline-flex';
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Scraper Code';
+}
+
+function copyScraper() {
+  if (!_code) { alert('Click Generate first.'); return; }
+  navigator.clipboard.writeText(_code).then(function() {
+    var btn = document.getElementById('btn-copy');
+    btn.textContent = '\u2713 Copied! Paste in Geometrack console';
+    btn.style.background = '#1a5c38';
+    setTimeout(function() {
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Scraper Code';
+      btn.style.background = '';
+    }, 3000);
+  });
+}
+
+function buildCode(urlMap) {
+  var mapJson = JSON.stringify(urlMap);
+  var FORM = 'https://jolly-meringue-4b4476.netlify.app/';
+  var p = [];
+  p.push('(function(){');
+  p.push('var M='+mapJson+';');
+  p.push('var FORM="'+FORM+'";');
+
+  // Case ID → case number for cases sharing the same group name
+  p.push('var ID_MAP={"MR2600300":5,"MR2600301":6,"MR2600303":8,"MR2600307":9,"MR2600316":14};');
+  // Cases 18-25 are new — add their Geometrack IDs here once known:
+  // Prima Antar Surya→18, Sinar Alam→19, Etam Bersama→20, FAP Agri/Marsam→21,
+  // Pancadaya→22, Dupont/Nunukan→23, First Resources/Borneopersada→24, Yayasan Sabah→25');
+
+  // Get group name
+  p.push('var pageTitle="";');
+  p.push('var lines=document.body.innerText.split("\\n").map(function(l){return l.trim();});');
+  p.push('for(var i=0;i<lines.length-1;i++){if(lines[i]==="Group"&&lines[i+1].length>3){pageTitle=lines[i+1];break;}}');
+
+  // Match by case ID first, then group name
+  p.push('var ref=window.location.pathname.split("/").pop();');
+  p.push('var cn=ID_MAP[ref]||0;var matchedKey=cn?"Case "+cn:"";');
+  p.push('if(!cn){Object.keys(M).forEach(function(k){if(pageTitle.toLowerCase().indexOf(k.toLowerCase())>-1){cn=M[k];matchedKey=k;}});}');
+
+  // Manual selector if no match
+  p.push('if(!cn){');
+  p.push('var opts=Object.keys(M).map(function(k){return "<option value=\'"+M[k]+"\' style=\'background:#fff;color:#1c2b22;\'>"+k+" \u2192 Case "+M[k]+"</option>";}).join("");');
+  p.push('var sel=document.createElement("div");sel.style.cssText="position:fixed;bottom:20px;right:20px;z-index:2147483647;background:#1c2b22;border-radius:10px;padding:16px 18px;color:#fff;width:340px;font-family:Arial,sans-serif;font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,0.5);";');
+  p.push('sel.innerHTML="<div style=\'font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;\'>&#127807; Fuji Oil Scraper</div><div style=\'font-size:12px;color:#c97b2e;margin-bottom:10px;\'>Company not detected \u2014 select:</div><select id=\'__fsel__\' style=\'width:100%;background:#fff;color:#1c2b22;border-radius:5px;padding:7px;font-size:13px;margin-bottom:10px;\'><option value=\'\'>-- Select --</option>"+opts+"</select><div style=\'display:flex;gap:8px;\'><button id=\'__fok__\' style=\'flex:1;background:#2d6a47;color:#fff;border:none;border-radius:6px;padding:9px;font-size:13px;font-weight:bold;cursor:pointer;\'>Fill Form</button><button id=\'__fcancel__\' style=\'background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);border-radius:6px;padding:9px 12px;font-size:13px;cursor:pointer;\'>Cancel</button></div>";');
+  p.push('document.body.appendChild(sel);');
+  p.push('document.getElementById("__fcancel__").onclick=function(){sel.remove();};');
+  p.push('document.getElementById("__fok__").onclick=function(){var v=parseInt(document.getElementById("__fsel__").value,10);if(!v)return;var lbl=document.getElementById("__fsel__").options[document.getElementById("__fsel__").selectedIndex].text;sel.remove();runScrape(v,lbl);};');
+  p.push('return;}');
+  p.push('runScrape(cn,matchedKey);');
+
+  // scrapeM
+  p.push('function scrapeM(txt){var mills=[];var ls=txt.split("\\n").map(function(l){return l.trim();});var ui=-1;for(var k=0;k<ls.length;k++){if(ls[k]==="UML ID"){ui=k;break;}}if(ui>-1){for(var i=ui+1;i<ls.length-1;i+=2){if(/^PO\\d+$/.test(ls[i+1])&&ls[i].length>1){mills.push({name:ls[i],umlId:ls[i+1]});}else break;}}if(!mills.length){for(var j=1;j<ls.length;j++){if(/^PO\\d{10}$/.test(ls[j])&&ls[j-1].length>2&&!/Mill Name|UML ID/i.test(ls[j-1])){mills.push({name:ls[j-1],umlId:ls[j]});}}}return mills;}');
+
+  // runScrape — auto opens form and sends
+  p.push('function runScrape(cn,key){');
+  p.push('var mills=scrapeM(document.body.innerText||"");');
+  p.push('var payload={type:"mill_data",caseNum:cn,mills:mills,caseRef:ref};');
+  p.push('var fw=window.open(FORM,"fuji_form");');
+  // Status toast
+  p.push('var ov=document.createElement("div");ov.style.cssText="position:fixed;bottom:20px;right:20px;z-index:2147483647;background:#1c2b22;border-radius:10px;padding:14px 18px;color:#fff;font-family:Arial,sans-serif;font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,0.45);min-width:260px;";');
+  p.push('ov.innerHTML="<div style=\'font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;\'>&#127807; Fuji Oil Scraper</div><div style=\'font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:5px;\'>Case "+cn+" \u2014 "+key+"</div><div id=\'__fst__\' style=\'font-size:13px;color:#c97b2e;\'>\u23f3 Opening form...</div>";');
+  p.push('document.body.appendChild(ov);');
+  p.push('var att=0;var t=setInterval(function(){att++;try{fw.postMessage(payload,"https://jolly-meringue-4b4476.netlify.app");clearInterval(t);var el=document.getElementById("__fst__");var c=mills.length?"#3d9b5f":"#c97b2e";var m=mills.length?("\u2713 "+mills.length+" mill(s) sent!"):"\\u26a0 0 mills \u2014 check Related Mill tab";if(el){el.textContent=m;el.style.color=c;}setTimeout(function(){ov.remove();},4000);}catch(e){if(att>40){clearInterval(t);}}},500);');
+  p.push('}');
+  p.push('})()');
+  return p.join('');
+}
+</script>
+</body>
+</html>
