@@ -698,8 +698,8 @@ function updateMillTable(n, mills) {
   if (!card) return;
   const tbody = card.querySelector('.linkage-table tbody');
   if (tbody) {
-    tbody.innerHTML = mills.map(m =>
-      `<tr><td>${m.name}</td><td class="mill-id">${m.umlId}</td></tr>`
+    tbody.innerHTML = mills.map((m, i) =>
+      `<tr><td>${m.name}</td><td class="mill-id">${m.umlId}</td><td style="width:24px;text-align:center;"><button class="btn-delete-mill" onclick="deleteMillRow(this,${n},${i})" title="Remove this mill">✕</button></td></tr>`
     ).join('');
   }
 }
@@ -837,11 +837,8 @@ function deleteMillRow(btn, cardN, millIdx) {
   if (caseData[cardN] && caseData[cardN].mills) {
     caseData[cardN].mills.splice(millIdx, 1);
   }
-  // Remove the <tr> from the table
-  const tr = btn.closest('tr');
-  if (tr) tr.remove();
-  // Re-render remaining rows with updated indices
-  updateMillTable(cardN);
+  // Re-render table with updated indices (handles button index refresh)
+  updateMillTable(cardN, caseData[cardN].mills || []);
 }
 
 function updateMillDeleteButtons(cardN) {
