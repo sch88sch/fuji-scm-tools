@@ -195,21 +195,17 @@ function buildCode(urlMap) {
   p.push('var M='+mapJson+';');
   p.push('var FORM="'+FORM+'";');
 
-  // Case ID → case number for cases sharing the same group name
-  p.push('var ID_MAP={"MR2600300":5,"MR2600301":6,"MR2600303":8,"MR2600307":9,"MR2600316":14};');
-  // Cases 18-25 are new — add their Geometrack IDs here once known:
-  // Prima Antar Surya→18, Sinar Alam→19, Etam Bersama→20, FAP Agri/Marsam→21,
-  // Pancadaya→22, Dupont/Nunukan→23, First Resources/Borneopersada→24, Yayasan Sabah→25');
-
-  // Get group name
-  p.push('var pageTitle="";');
+  // Get subsidiary/estate name and group name from Geometrack page
+  p.push('var pageTitle="";var subTitle="";');
   p.push('var lines=document.body.innerText.split("\\n").map(function(l){return l.trim();});');
-  p.push('for(var i=0;i<lines.length-1;i++){if(lines[i]==="Group"&&lines[i+1].length>3){pageTitle=lines[i+1];break;}}');
+  p.push('for(var i=0;i<lines.length-1;i++){if(lines[i]==="Group"&&lines[i+1].length>3){pageTitle=lines[i+1];}if(lines[i]==="Subsidiary"&&lines[i+1].length>3){subTitle=lines[i+1];}}');
 
-  // Match by case ID first, then group name
-  p.push('var ref=window.location.pathname.split("/").pop();');
-  p.push('var cn=ID_MAP[ref]||0;var matchedKey=cn?"Case "+cn:"";');
-  p.push('if(!cn){Object.keys(M).forEach(function(k){if(pageTitle.toLowerCase().indexOf(k.toLowerCase())>-1){cn=M[k];matchedKey=k;}});}');
+  // Match by subsidiary name first (more specific), then group name
+  // Use longest matching key to avoid partial matches (e.g. "FAP Agri" matching before "Ketapang Hijau Lestari")
+  p.push('var cn=0;var matchedKey="";');
+  p.push('var searchText=(subTitle+" "+pageTitle).toLowerCase();');
+  p.push('var bestLen=0;');
+  p.push('Object.keys(M).forEach(function(k){if(k.length>bestLen&&searchText.indexOf(k.toLowerCase())>-1){cn=M[k];matchedKey=k;bestLen=k.length;}});');
 
   // Manual selector if no match
   p.push('if(!cn){');
