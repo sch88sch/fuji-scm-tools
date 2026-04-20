@@ -1072,37 +1072,35 @@ const MILL_LOOKUP = {"PO1000000242":[["UniFuji","United Plantations Bhd"],["PAL"
 // ── Supplier linkage Excel export ─────────────────────────────────────────────
 function exportSupplierLinkage() {
   if (typeof XLSX === 'undefined') { showToast('SheetJS not loaded — check internet connection'); return; }
-  const detailData = [['Case No.','Grievance Case','Mill Name','UML ID','Fuji Refinery (Buyer)','Seller / T1 Supplier','Mill List Period']];
+  const detailData = [['Case No.','Grievance Case','Mill Name','UML ID','Fuji Refinery (Buyer)','Seller / T1 Supplier','Shipper / Provider (T2)','Supplier Facility Name (T3)','Mill List Period']];
   Object.keys(caseData).map(Number).sort((a,b)=>a-b).forEach(n => {
     const cd = caseData[n];
     const mills = (cd.mills||[]).filter(m=>m.name&&m.name!=='—');
-    if (!mills.length) { detailData.push([n,cd.party||'','—','—','No mill data','No mill data',MILL_LIST_PERIOD]); return; }
+    if (!mills.length) { detailData.push([n,cd.party||'','—','—','No mill data','No mill data','','',MILL_LIST_PERIOD]); return; }
     mills.forEach(m => {
       const matches = MILL_LOOKUP[m.umlId]||[];
-      if (matches.length) matches.forEach(([b,s]) => detailData.push([n,cd.party||'',m.name,m.umlId,b,s,MILL_LIST_PERIOD]));
-      else detailData.push([n,cd.party||'',m.name,m.umlId,'Not in mill list','Not in mill list',MILL_LIST_PERIOD]);
+      if (matches.length) matches.forEach(([b,s,t2,t3]) => detailData.push([n,cd.party||'',m.name,m.umlId,b,s,t2||'',t3||'',MILL_LIST_PERIOD]));
+      else detailData.push([n,cd.party||'',m.name,m.umlId,'Not in mill list','Not in mill list','','',MILL_LIST_PERIOD]);
     });
   });
-  const summaryData = [['Case No.','Grievance Case','Fuji Refinery (Buyer)','Seller / T1 Supplier','Mill List Period']];
+  const summaryData = [['Case No.','Grievance Case','Fuji Refinery (Buyer)','Seller / T1 Supplier','Shipper / Provider (T2)','Supplier Facility Name (T3)','Mill List Period']];
   Object.keys(caseData).map(Number).sort((a,b)=>a-b).forEach(n => {
     const cd = caseData[n];
     const mills = (cd.mills||[]).filter(m=>m.name&&m.name!=='—');
-    if (!mills.length) { summaryData.push([n,cd.party||'','No mill data','No mill data',MILL_LIST_PERIOD]); return; }
+    if (!mills.length) { summaryData.push([n,cd.party||'','No mill data','No mill data','','',MILL_LIST_PERIOD]); return; }
     const seen = new Set(); const pairs = [];
-    mills.forEach(m => { (MILL_LOOKUP[m.umlId]||[]).forEach(([b,s]) => { const k=b+'|'+s; if(!seen.has(k)){seen.add(k);pairs.push([b,s]);} }); });
-    if (!pairs.length) summaryData.push([n,cd.party||'','Not in mill list','Not in mill list',MILL_LIST_PERIOD]);
-    else pairs.sort((a,b)=>a[1].localeCompare(b[1])).forEach(([b,s]) => summaryData.push([n,cd.party||'',b,s,MILL_LIST_PERIOD]));
+    mills.forEach(m => { (MILL_LOOKUP[m.umlId]||[]).forEach(([b,s,t2,t3]) => { const k=b+'|'+s+'|'+(t2||'')+'|'+(t3||''); if(!seen.has(k)){seen.add(k);pairs.push([b,s,t2||'',t3||'']);} }); });
+    if (!pairs.length) summaryData.push([n,cd.party||'','Not in mill list','Not in mill list','','',MILL_LIST_PERIOD]);
+    else pairs.sort((a,b)=>a[1].localeCompare(b[1])).forEach(([b,s,t2,t3]) => summaryData.push([n,cd.party||'',b,s,t2,t3,MILL_LIST_PERIOD]));
   });
   function sh(ws,row,ncols,bg){for(let c=0;c<ncols;c++){const addr=XLSX.utils.encode_cell({r:row,c});if(!ws[addr])ws[addr]={v:'',t:'s'};ws[addr].s={font:{bold:true,color:{rgb:'FFFFFF'},name:'Arial',sz:10},fill:{fgColor:{rgb:bg},patternType:'solid'},alignment:{horizontal:'center',vertical:'center',wrapText:true},border:{top:{style:'thin',color:{rgb:'B8D9C5'}},bottom:{style:'thin',color:{rgb:'B8D9C5'}},left:{style:'thin',color:{rgb:'B8D9C5'}},right:{style:'thin',color:{rgb:'B8D9C5'}}}};}}
   function sr(ws,row,ncols,bg){for(let c=0;c<ncols;c++){const addr=XLSX.utils.encode_cell({r:row,c});if(!ws[addr])ws[addr]={v:'',t:'s'};ws[addr].s={font:{name:'Arial',sz:9},fill:{fgColor:{rgb:bg},patternType:'solid'},alignment:{vertical:'top',wrapText:true},border:{top:{style:'thin',color:{rgb:'B8D9C5'}},bottom:{style:'thin',color:{rgb:'B8D9C5'}},left:{style:'thin',color:{rgb:'B8D9C5'}},right:{style:'thin',color:{rgb:'B8D9C5'}}}};}}
   const wb=XLSX.utils.book_new();
-  const ws1=XLSX.utils.aoa_to_sheet(summaryData); ws1['!cols']=[{wch:8},{wch:42},{wch:22},{wch:38},{wch:12}]; sh(ws1,0,5,'1C4532');
-  let pc=null; for(let r=1;r<summaryData.length;r++){const cn=summaryData[r][0];sr(ws1,r,5,cn%2===0?'EAF3ED':'FFFFFF');if(cn===pc){const a=XLSX.utils.encode_cell({r,c:0});const b=XLSX.utils.encode_cell({r,c:1});if(ws1[a])ws1[a].v='';if(ws1[b])ws1[b].v='';}pc=cn;}
+  const ws1=XLSX.utils.aoa_to_sheet(summaryData); ws1['!cols']=[{wch:8},{wch:42},{wch:22},{wch:38},{wch:35},{wch:35},{wch:12}]; sh(ws1,0,7,'1C4532');
+  let pc=null; for(let r=1;r<summaryData.length;r++){const cn=summaryData[r][0];sr(ws1,r,7,cn%2===0?'EAF3ED':'FFFFFF');if(cn===pc){const a=XLSX.utils.encode_cell({r,c:0});const b=XLSX.utils.encode_cell({r,c:1});if(ws1[a])ws1[a].v='';if(ws1[b])ws1[b].v='';}pc=cn;}
   XLSX.utils.book_append_sheet(wb,ws1,'Summary by Case');
-  const ws2=XLSX.utils.aoa_to_sheet(detailData); ws2['!cols']=[{wch:8},{wch:38},{wch:28},{wch:14},{wch:22},{wch:38},{wch:12}]; sh(ws2,0,7,'1C4532');
-
-
-
+  const ws2=XLSX.utils.aoa_to_sheet(detailData); ws2['!cols']=[{wch:8},{wch:38},{wch:28},{wch:14},{wch:22},{wch:38},{wch:35},{wch:35},{wch:12}]; sh(ws2,0,9,'1C4532');
+  let pc2=null; for(let r=1;r<detailData.length;r++){const cn=detailData[r][0];sr(ws2,r,9,cn%2===0?'EAF3ED':'FFFFFF');if(cn===pc2){const a=XLSX.utils.encode_cell({r,c:0});const b=XLSX.utils.encode_cell({r,c:1});if(ws2[a])ws2[a].v='';if(ws2[b])ws2[b].v='';}pc2=cn;}
   XLSX.utils.book_append_sheet(wb,ws2,'Detail by Mill');
   XLSX.writeFile(wb,'FujiOil_SupplierLinkage_'+new Date().toISOString().slice(0,10)+'.xlsx');
   showToast('Supplier linkage Excel downloaded');
