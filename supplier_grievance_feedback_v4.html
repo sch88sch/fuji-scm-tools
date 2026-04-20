@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -817,13 +816,69 @@ function importMillData(event) {
 
 // ── Download for Supplier ─────────────────────────────────────────────────────
 // Generates a self-contained HTML file with current mill data baked in.
+// ── Undo/Redo history ────────────────────────────────────────────────────────
+const _history = [];  // stack of undo actions
+const _redoStack = [];  // stack of redo actions
+function _pushUndo(action) { _history.push(action); _redoStack.length = 0; _updateUndoRedo(); }
+function _updateUndoRedo() {
+  const undoBtn = document.getElementById('btn-undo');
+  const redoBtn = document.getElementById('btn-redo');
+  if (undoBtn) {
+    undoBtn.disabled = _history.length === 0;
+    undoBtn.title = _history.length ? 'Undo: ' + _history[_history.length-1].desc : 'Nothing to undo';
+    undoBtn.style.color = _history.length ? '#3d9b5f' : 'rgba(255,255,255,0.4)';
+    undoBtn.style.fontWeight = _history.length ? '600' : '500';
+    undoBtn.style.cursor = _history.length ? 'pointer' : 'default';
+  }
+  if (redoBtn) {
+    redoBtn.disabled = _redoStack.length === 0;
+    redoBtn.title = _redoStack.length ? 'Redo: ' + _redoStack[_redoStack.length-1].desc : 'Nothing to redo';
+    redoBtn.style.color = _redoStack.length ? '#3d9b5f' : 'rgba(255,255,255,0.4)';
+    redoBtn.style.fontWeight = _redoStack.length ? '600' : '500';
+    redoBtn.style.cursor = _redoStack.length ? 'pointer' : 'default';
+  }
+}
+function undoAction() {
+  if (!_history.length) return;
+  const action = _history.pop();
+  _redoStack.push(action);
+  action.undo();
+  _updateUndoRedo();
+}
+function redoAction() {
+  if (!_redoStack.length) return;
+  const action = _redoStack.pop();
+  _history.push(action);
+  action.redo();
+  _updateUndoRedo();
+}
+
 function deleteCase(n, btn) {
-  btn.closest('.case-card').classList.add('deleted');
+  const card = btn.closest('.case-card');
+  const savedData = caseData[n];  // save before deleting
+  card.classList.add('deleted');
   delete caseData[n];
   const remaining = document.querySelectorAll('.case-card:not(.deleted)').length;
   document.getElementById('case-count').textContent = remaining + ' case' + (remaining !== 1 ? 's' : '');
   updateToggleAllBtn();
   renumberCases();
+  _pushUndo({
+    desc: 'Delete Case ' + (card.querySelector('.case-num')?.textContent || n),
+    undo: function() {
+      caseData[n] = savedData;
+      card.classList.remove('deleted');
+      const rem = document.querySelectorAll('.case-card:not(.deleted)').length;
+      document.getElementById('case-count').textContent = rem + ' case' + (rem !== 1 ? 's' : '');
+      updateToggleAllBtn(); renumberCases();
+    },
+    redo: function() {
+      card.classList.add('deleted');
+      delete caseData[n];
+      const rem = document.querySelectorAll('.case-card:not(.deleted)').length;
+      document.getElementById('case-count').textContent = rem + ' case' + (rem !== 1 ? 's' : '');
+      updateToggleAllBtn(); renumberCases();
+    }
+  });
 }
 
 // Renumber visible case cards sequentially after a deletion
@@ -857,12 +912,43 @@ function injectDeleteButtons() {
 }
 
 function deleteMillRow(btn, cardN, millIdx) {
-  // Remove from caseData
-  if (caseData[cardN] && caseData[cardN].mills) {
-    caseData[cardN].mills.splice(millIdx, 1);
-  }
-  // Re-render table with updated indices (handles button index refresh)
-  updateMillTable(cardN, caseData[cardN].mills || []);
+  if (!caseData[cardN] || !caseData[cardN].mills) return;
+  const deletedMill = caseData[cardN].mills[millIdx];
+  if (!deletedMill) return;
+
+  // Find all same-group cases that have this exact mill
+  function getGroup(n) { return (caseData[n] && caseData[n].party || '').split(' — ')[0].trim(); }
+  const group = getGroup(cardN);
+  const affectedCases = Object.keys(caseData).map(Number).filter(k => {
+    if (getGroup(k) !== group) return false;
+    const mills = caseData[k].mills || [];
+    return mills.some(m => m.name === deletedMill.name && m.umlId === deletedMill.umlId);
+  });
+
+  // Save old mills for all affected cases (for undo)
+  const savedMills = {};
+  affectedCases.forEach(k => { savedMills[k] = [...caseData[k].mills]; });
+
+  // Remove from all affected cases
+  affectedCases.forEach(k => {
+    caseData[k].mills = caseData[k].mills.filter(m => !(m.name === deletedMill.name && m.umlId === deletedMill.umlId));
+    updateMillTable(k, caseData[k].mills);
+  });
+
+  const desc = 'Delete mill ' + (deletedMill.name !== '—' ? deletedMill.name : 'placeholder') +
+    (affectedCases.length > 1 ? ' (' + affectedCases.length + ' cases)' : '');
+  _pushUndo({
+    desc: desc,
+    undo: function() {
+      affectedCases.forEach(k => { caseData[k].mills = [...savedMills[k]]; updateMillTable(k, caseData[k].mills); });
+    },
+    redo: function() {
+      affectedCases.forEach(k => {
+        caseData[k].mills = caseData[k].mills.filter(m => !(m.name === deletedMill.name && m.umlId === deletedMill.umlId));
+        updateMillTable(k, caseData[k].mills);
+      });
+    }
+  });
 }
 
 function updateMillDeleteButtons(cardN) {
@@ -892,7 +978,7 @@ function downloadForSupplier() {
   clone.querySelectorAll('.btn-delete-case').forEach(el => el.remove());
   clone.querySelectorAll('.main > div').forEach(div => {
     const t = div.textContent || '';
-    if (t.includes('Download form for supplier') || t.includes('Export Mill Data') || t.includes('Import Mill Data') || t.includes('Supplier linkage report')) div.remove();
+    if (t.includes('Download form for supplier') || t.includes('Export Mill Data') || t.includes('Import Mill Data') || t.includes('Supplier linkage report') || t.includes('Submit all responses') || div.querySelector('#btn-undo')) div.remove();
   });
   // Bake mill data into tables
   clone.querySelectorAll('.case-card').forEach(card => {
@@ -912,7 +998,7 @@ function downloadForSupplier() {
   clone.querySelector('body').appendChild(s1);
   // Inject script 2: all runtime functions
   const s2 = clone.ownerDocument.createElement('script');
-  s2.textContent = "var RECIPIENT='chanhuo.siew@fujioilasia.com';var CC='kokseng@fujioilasia.com,qasrina.almas@fujioilasia.com,ningshing.hu@fujioilasia.com,hori.katsuhito@so.fujioil.co.jp';document.querySelectorAll('.case-header').forEach(function(h){h.style.cursor='pointer';h.addEventListener('click',function(){h.closest('.case-card').classList.toggle('open');updateBtn();});});function updateBtn(){var btn=document.getElementById('toggle-all-btn');if(!btn)return;var any=Array.from(document.querySelectorAll('.case-card')).some(function(c){return c.classList.contains('open');});btn.textContent=any?'Collapse all':'Expand all';}var tBtn=document.getElementById('toggle-all-btn');if(tBtn){tBtn.addEventListener('click',function(){var cards=document.querySelectorAll('.case-card');var any=Array.from(cards).some(function(c){return c.classList.contains('open');});cards.forEach(function(c){any?c.classList.remove('open'):c.classList.add('open');});updateBtn();});}function cc(ta,cid){var n=ta.value.length;document.getElementById(cid).textContent=n.toLocaleString()+' character'+(n!==1?'s':'');}function validateCase(n){var el=document.getElementById('c'+n+'_exp');var fg=document.getElementById('c'+n+'_exp_field');if(!el||!el.value.trim()){if(fg)fg.classList.add('error');var card=document.getElementById('card-'+n);if(card)card.classList.add('open');return false;}if(fg)fg.classList.remove('error');return true;}function buildBody(n,cd){var exp=(document.getElementById('c'+n+'_exp')||{}).value||'';exp=exp.trim();var NL='\\n';var monLines=cd.monitoring.map(function(m){return'  '+m.period.padEnd(22)+' Forest: '+String(m.forest).padStart(4)+' ha  |  Peat Forest: '+String(m.peatForest).padStart(4)+' ha  |  Peat: '+String(m.peat).padStart(4)+' ha';}).join(NL);return['BI-WEEKLY MONITORING - CLEARING AREA (ha)','-'.repeat(55),monLines,'','RESPONSE','-'.repeat(55),exp||'(no response provided)'].join(NL);}function buildBodyAll(n,cd){var exp=(document.getElementById('c'+n+'_exp')||{}).value||'';exp=exp.trim();var NL='\\n';var monLines=cd.monitoring.map(function(m){return'  '+m.period.padEnd(22)+' Forest: '+String(m.forest).padStart(4)+' ha  |  Peat Forest: '+String(m.peatForest).padStart(4)+' ha  |  Peat: '+String(m.peat).padStart(4)+' ha';}).join(NL);return['[ CASE '+n+' ]  '+cd.party.toUpperCase(),'='.repeat(60),'','BI-WEEKLY MONITORING - CLEARING AREA (ha)','-'.repeat(55),monLines,'','RESPONSE','-'.repeat(55),exp||'(no response provided)','','='.repeat(60)].join(NL);}function submitCase(n){if(!validateCase(n))return;var cd=caseData[n];var subj='Grievance Response \\u2014 '+cd.party;var body=buildBody(n,cd);window.location.href='mailto:'+RECIPIENT+'?cc='+encodeURIComponent(CC)+'&subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);setTimeout(function(){var tag=document.getElementById('tag-'+n);if(tag){tag.textContent='Responded';tag.className='tag tag-responded';}var sent=document.getElementById('sent-'+n);if(sent){sent.classList.add('show');sent.innerHTML='Response sent';}},600);}function submitAll(){var caseNums=Object.keys(caseData).map(Number);var allValid=true;caseNums.forEach(function(n){if(!validateCase(n))allValid=false;});if(!allValid){alert('Please complete the response for all cases before submitting all at once.');return;}var parts=caseNums.map(function(n){return buildBodyAll(n,caseData[n]);});var subj='Grievance Responses \\u2014 '+caseNums.length+' Case(s) \\u2014 Fuji Oil SCM';var body=parts.join('\\n\\n');window.location.href='mailto:'+RECIPIENT+'?cc='+encodeURIComponent(CC)+'&subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);setTimeout(function(){var note=document.getElementById('global-sent-note');if(note)note.classList.add('show');},600);}document.querySelectorAll('textarea').forEach(function(el){el.addEventListener('input',function(){var f=el.closest('.field');if(f)f.classList.remove('error');});});";
+  s2.textContent = "var RECIPIENT='chanhuo.siew@fujioilasia.com';var CC='kokseng@fujioilasia.com,qasrina.almas@fujioilasia.com,ningshing.hu@fujioilasia.com,hori.katsuhito@so.fujioil.co.jp';document.querySelectorAll('.case-header').forEach(function(h){h.style.cursor='pointer';h.addEventListener('click',function(){h.closest('.case-card').classList.toggle('open');updateBtn();});});function updateBtn(){var btn=document.getElementById('toggle-all-btn');if(!btn)return;var any=Array.from(document.querySelectorAll('.case-card')).some(function(c){return c.classList.contains('open');});btn.textContent=any?'Collapse all':'Expand all';}var tBtn=document.getElementById('toggle-all-btn');if(tBtn){tBtn.addEventListener('click',function(){var cards=document.querySelectorAll('.case-card');var any=Array.from(cards).some(function(c){return c.classList.contains('open');});cards.forEach(function(c){any?c.classList.remove('open'):c.classList.add('open');});updateBtn();});}function cc(ta,cid){var n=ta.value.length;document.getElementById(cid).textContent=n.toLocaleString()+' character'+(n!==1?'s':'');}function validateCase(n){var el=document.getElementById('c'+n+'_exp');var fg=document.getElementById('c'+n+'_exp_field');if(!el||!el.value.trim()){if(fg)fg.classList.add('error');var card=document.getElementById('card-'+n);if(card)card.classList.add('open');return false;}if(fg)fg.classList.remove('error');return true;}function buildBody(n,cd){var exp=(document.getElementById('c'+n+'_exp')||{}).value||'';exp=exp.trim();var NL='\\n';var monLines=cd.monitoring.map(function(m){return'  '+m.period.padEnd(22)+' Forest: '+String(m.forest).padStart(4)+' ha  |  Peat Forest: '+String(m.peatForest).padStart(4)+' ha  |  Peat: '+String(m.peat).padStart(4)+' ha';}).join(NL);return['BI-WEEKLY MONITORING - CLEARING AREA (ha)','-'.repeat(55),monLines,'','RESPONSE','-'.repeat(55),exp||'(no response provided)'].join(NL);}function buildBodyAll(displayNum,n,cd){var exp=(document.getElementById('c'+n+'_exp')||{}).value||'';exp=exp.trim();var NL='\\n';var monLines=cd.monitoring.map(function(m){return'  '+m.period.padEnd(22)+' Forest: '+String(m.forest).padStart(4)+' ha  |  Peat Forest: '+String(m.peatForest).padStart(4)+' ha  |  Peat: '+String(m.peat).padStart(4)+' ha';}).join(NL);return['[ CASE '+displayNum+' ]  '+cd.party.toUpperCase(),'='.repeat(60),'','BI-WEEKLY MONITORING - CLEARING AREA (ha)','-'.repeat(55),monLines,'','RESPONSE','-'.repeat(55),exp||'(no response provided)','','='.repeat(60)].join(NL);}function submitCase(n){if(!validateCase(n))return;var cd=caseData[n];var subj='Grievance Response \\u2014 '+cd.party;var body=buildBody(n,cd);window.location.href='mailto:'+RECIPIENT+'?cc='+encodeURIComponent(CC)+'&subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);setTimeout(function(){var tag=document.getElementById('tag-'+n);if(tag){tag.textContent='Responded';tag.className='tag tag-responded';}var sent=document.getElementById('sent-'+n);if(sent){sent.classList.add('show');sent.innerHTML='Response sent';}},600);}function submitAll(){var caseNums=Object.keys(caseData).map(Number).filter(function(n){var c=document.getElementById('card-'+n);return c&&!c.classList.contains('deleted');});var allValid=true;caseNums.forEach(function(n){if(!validateCase(n))allValid=false;});if(!allValid){alert('Please complete the response for all cases before submitting all at once.');return;}var parts=caseNums.map(function(n,idx){var card=document.getElementById('card-'+n);var displayNum=card&&card.querySelector('.case-num')?card.querySelector('.case-num').textContent:(idx+1);return buildBodyAll(displayNum,n,caseData[n]);});var subj='Grievance Responses \\u2014 '+caseNums.length+' Case(s) \\u2014 Fuji Oil SCM';var body=parts.join('\\n\\n');window.location.href='mailto:'+RECIPIENT+'?cc='+encodeURIComponent(CC)+'&subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);setTimeout(function(){var note=document.getElementById('global-sent-note');if(note)note.classList.add('show');},600);}document.querySelectorAll('textarea').forEach(function(el){el.addEventListener('input',function(){var f=el.closest('.field');if(f)f.classList.remove('error');});});";
   clone.querySelector('body').appendChild(s2);
   const blob = new Blob([clone.outerHTML], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
@@ -1606,6 +1692,23 @@ function exportSupplierLinkage() {
     </button>
   </div>
 
+  <!-- UNDO / REDO BAR -->
+  <div style="display:flex;gap:8px;margin-bottom:12px;justify-content:flex-end;">
+    <button id="btn-undo" onclick="undoAction()" disabled title="Nothing to undo"
+      style="background:#fff;border:1.5px solid var(--border);border-radius:7px;padding:8px 16px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;color:var(--ink-light);display:flex;align-items:center;gap:6px;transition:all 0.15s;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13C5 7 10 4 16 5.5a9 9 0 0 1 5 7.5"/></svg>
+      Undo
+    </button>
+    <button id="btn-redo" onclick="redoAction()" disabled title="Nothing to redo"
+      style="background:#fff;border:1.5px solid var(--border);border-radius:7px;padding:8px 16px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;color:var(--ink-light);display:flex;align-items:center;gap:6px;transition:all 0.15s;">
+      Redo
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M21 13c-2-6-7-9-13-7.5A9 9 0 0 0 3 13"/></svg>
+    </button>
+  </div>
+
+
+
+
   <div class="global-submit-bar">
     <div style="flex:1;">
       <div class="global-submit-info">
@@ -1622,3 +1725,20 @@ function exportSupplierLinkage() {
     </button>
   </div>
 
+</div><!-- close .main -->
+
+<!-- UNDO / REDO BAR — always visible, fixed to bottom of viewport -->
+<div id="undo-redo-bar" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;flex-direction:row;gap:0;align-items:center;background:#1c2b22;border-radius:10px;padding:6px 10px;box-shadow:0 4px 24px rgba(0,0,0,0.35);">
+  <button id="btn-undo" onclick="undoAction()" disabled title="Nothing to undo"
+    style="background:none;border:none;border-radius:6px;padding:7px 14px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:6px;transition:all 0.15s;">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13C5 7 10 4 16 5.5a9 9 0 0 1 5 7.5"/></svg>
+    Undo
+  </button>
+  <div style="width:1px;height:18px;background:rgba(255,255,255,0.15);"></div>
+  <button id="btn-redo" onclick="redoAction()" disabled title="Nothing to redo"
+    style="background:none;border:none;border-radius:6px;padding:7px 14px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:6px;transition:all 0.15s;">
+    Redo
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M21 13c-2-6-7-9-13-7.5A9 9 0 0 0 3 13"/></svg>
+  </button>
+</div>
+</body></html>
