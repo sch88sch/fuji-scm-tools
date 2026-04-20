@@ -978,7 +978,7 @@ function downloadForSupplier() {
   clone.querySelectorAll('.btn-delete-case').forEach(el => el.remove());
   clone.querySelectorAll('.main > div').forEach(div => {
     const t = div.textContent || '';
-    if (t.includes('Download form for supplier') || t.includes('Export Mill Data') || t.includes('Import Mill Data') || t.includes('Supplier linkage report') || t.includes('Submit all responses') || div.querySelector('#btn-undo')) div.remove();
+    if (t.includes('Download form for supplier') || t.includes('Export Mill Data') || t.includes('Import Mill Data') || t.includes('Supplier linkage report') || div.querySelector('#btn-undo')) div.remove();
   });
   // Bake mill data into tables
   clone.querySelectorAll('.case-card').forEach(card => {
