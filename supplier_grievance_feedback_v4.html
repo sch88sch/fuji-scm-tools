@@ -671,7 +671,7 @@ function applyMillData(d) {
       setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
     }
 
-    // Auto-fill other cases with the same group name
+    // Auto-fill other cases that share the exact same parent group
     const groupName = (caseData[n].party || '').split(' — ')[0].trim();
     const autoFilled = [];
     if (groupName && mills.length > 0) {
@@ -687,8 +687,9 @@ function applyMillData(d) {
         }
       });
     }
-
-    const autoMsg = autoFilled.length ? ` · auto-filled Case${autoFilled.length > 1 ? 's' : ''} ${autoFilled.join(', ')} (same group)` : '';
+    const autoMsg = autoFilled.length
+      ? ` · auto-filled Case${autoFilled.length > 1 ? 's' : ''} ${autoFilled.join(', ')} (same group)`
+      : '';
     showToast(`Case ${n} updated — ${mills.length} mill${mills.length !== 1 ? 's' : ''} loaded${autoMsg}`);
   } catch(e) {}
 }
