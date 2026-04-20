@@ -592,6 +592,29 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Auto-inherit mills for new cases that share a parent group with an already-filled case
+  // A case is considered "unfilled" if its mills are empty or only contain the placeholder —
+  function isPlaceholder(mills) {
+    return !mills || mills.length === 0 || (mills.length === 1 && mills[0].name === '—');
+  }
+  function getGroup(n) {
+    return (caseData[n] && caseData[n].party || '').split(' — ')[0].trim();
+  }
+  Object.keys(caseData).forEach(n => {
+    const num = parseInt(n, 10);
+    if (!isPlaceholder(caseData[num].mills)) return; // already has real mills
+    const group = getGroup(num);
+    if (!group) return;
+    // Find another case in the same group that has real mills
+    const donor = Object.keys(caseData).map(Number).find(k =>
+      k !== num && getGroup(k) === group && !isPlaceholder(caseData[k].mills)
+    );
+    if (donor) {
+      const mills = caseData[donor].mills;
+      caseData[num].mills = mills;
+      updateMillTable(num, mills);
+    }
+  });
 
   const params = new URLSearchParams(window.location.search);
   const caseNum   = params.get('case');
