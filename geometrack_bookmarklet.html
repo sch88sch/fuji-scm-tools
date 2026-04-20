@@ -195,6 +195,9 @@ function buildCode(urlMap) {
   p.push('var M='+mapJson+';');
   p.push('var FORM="'+FORM+'";');
 
+  // Get page reference ID from URL
+  p.push('var ref=window.location.pathname.split("/").pop();');
+
   // Get subsidiary/estate name and group name from Geometrack page
   p.push('var pageTitle="";var subTitle="";');
   p.push('var lines=document.body.innerText.split("\\n").map(function(l){return l.trim();});');
