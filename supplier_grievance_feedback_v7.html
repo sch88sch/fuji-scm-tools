@@ -1081,6 +1081,36 @@ function updateMillDeleteButtons(cardN) {
   ).join('');
 }
 
+// ── Sort cases alphabetically by company name (toggles A–Z / original order) ──
+let _sortedAZ = false;
+function sortCases() {
+  const main = document.querySelector('.main');
+  if (!main) return;
+  const cards = Array.from(main.querySelectorAll('.case-card'));
+  if (!cards.length) return;
+
+  // Anchor: keep cards above the first action/control bar that follows them.
+  const anchor = cards[cards.length - 1].nextElementSibling;
+
+  const titleOf = c => (c.querySelector('.case-title')?.textContent || '').trim().toLowerCase();
+  const origOf  = c => parseInt((c.id || '').replace('card-', ''), 10) || 0;
+
+  cards.sort((a, b) =>
+    _sortedAZ
+      ? origOf(a) - origOf(b)                                   // restore original case order
+      : titleOf(a).localeCompare(titleOf(b), undefined, { sensitivity: 'base' })
+  );
+
+  cards.forEach(c => main.insertBefore(c, anchor));
+  _sortedAZ = !_sortedAZ;
+
+  const btn = document.getElementById('sort-btn');
+  if (btn) {
+    const label = btn.lastChild;
+    if (label && label.nodeType === 3) label.textContent = _sortedAZ ? ' Original order' : ' Sort A–Z';
+  }
+}
+
 function downloadForSupplier() {
   const clone = document.documentElement.cloneNode(true);
   clone.querySelector('body').dataset.supplierMode = '1';
@@ -1329,6 +1359,10 @@ function exportSupplierLinkage() {
     <h2>Grievance Cases</h2>
     <div style="display:flex;align-items:center;gap:10px;">
       <span class="count" id="case-count">1 case</span>
+      <button id="sort-btn" onclick="sortCases()" title="Reorder cases alphabetically by company name" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--ink-light);cursor:pointer;transition:background 0.15s;display:inline-flex;align-items:center;gap:5px;" onmouseover="this.style.background='var(--green-pale)'" onmouseout="this.style.background='none'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h10M11 9h7M11 13h4M3 17l3 3 3-3M6 18V4"/></svg>
+        Sort A–Z
+      </button>
       <button id="toggle-all-btn" onclick="toggleAll()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--ink-light);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--green-pale)'" onmouseout="this.style.background='none'">
         Expand all
       </button>
